@@ -1,41 +1,93 @@
-//api pour avoir un seul produit 
-const urlProduit = 'http://localhost:3000/api/products/:id'
-//fournir des options à la requete 
-const options = {
-    //le type de requete, récupéré la liste
-    method: 'GET',
-    //validation du contenu, donne des info sur le contenu recu json
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'appplication/json;charset=UTF-8'
-    },
+// elements HTML
+
+const image = document.querySelector('.item__img img')
+const title = document.querySelector('#title')
+const price = document.querySelector('#price')
+const description = document.querySelector("#description")
+const colorsHTMLElement = document.querySelector('#colors')
+const quantityHTMLElement = document.querySelector("#quantity")
+
+const addToCartBtn = document.querySelector('#addToCart')
+
+
+// un nouvel objet params 
+const params = new URLSearchParams(location.search)
+console.log(params)
+// Récupère ID  de l'url en cours
+const id = params.get("id")
+
+// URL API pour un seule ressource avec un ID unique
+const url = `http://localhost:3000/api/products/${id}`
+
+async function getData(url) {
+    const response = await fetch(url)
+    const data = await response.json()
+    appendSingleData(data)
 }
-// la deuxième fetch pour récuperer qu'un seul produit 
-fetch(urlProduit, options)
-    .then(function (response) {
-        return response.json();
-    })
-    .then(function (data) {
-        appendSingleData(data)
-    })
-    .catch(error => {
-        //la requete est faite mais ça passe pas et on a pas le code 400 d'erreurs
-        if (error.response) {
-            console.log(error.response.data)
-        }
-        else if (error.request) {
-            //la requete est faite mais pas de reponse
-            console.log(error.request)
-        }
-        else {
-            //déclenchement d'erreur avant d'envoyer la requete
-            console.log("Error", error.message)
-        }
-
-    })
-
-
+// Ajoute les données relatives à un Kanap dans le HTML
 function appendSingleData(data) {
+    // ajoute l'url de l'image à la balise img
+    image.src = data.imageUrl
+    // ajoute le texte alternatif de l'image à la balise img
+    image.alt = data.altTxt
+    // ajoute le nom du Kanap
+    title.innerText = data.name
+    // ajoute le prix du Kanap
+    price.innerText = data.price
+    // ajoute la description du Kanap
+    description.innerText = data.description
 
+    // Recupere chaque couleur dans le tableau colors
+    data.colors.forEach(color => {
+        // Pour chaque coleur, génère un element html option tout en injectant la couleur comme valeur et comme contenu
+        colorsHTMLElement.innerHTML += `
+        <option value="${color}">${color}</option>
+        `
+    })
 
 }
+getData(url)
+
+// fonction ajouter dans le panier
+function addToCart() {
+    // ** Objet KANAP
+    const kanap = {
+        quantity: +quantityHTMLElement.value,
+        color: colorsHTMLElement.value,
+        name: title.textContent,
+        id: id,
+        price: +price.textContent,
+        totalPrice: parseInt(quantityHTMLElement.value * price.textContent),
+        image: {
+            src: image.src,
+            alt: image.alt
+        }
+    }
+    // ** Tableau a mettre dans le localStorage
+    const panier = []
+    // Si panier existe dans le LocalStorage
+    if (localStorage.getItem('panier')) {
+        // ** On recupere le panier 
+        const panierStorage = JSON.parse(localStorage.getItem('panier'))
+        // On filtre pour extraire tout les Kanap sauf le Kanap courrant (Celui qu'on essaie de modifier)
+        const panierFilter = panierStorage.filter(item => item.id !== kanap.id)
+        // Ajoute les anciens Kanap ainsi que le nouveau Kanap
+        panier.push(...panierFilter, kanap)
+        // On Sauvegarde le panier dans le LocalStorage
+        localStorage.setItem("panier", JSON.stringify(panier))
+    }
+    else {
+        // // Si le  panier n'existe pas  dans le LocalStorage
+
+        // Ajoute le premier Kanap
+        panier.push(kanap)
+       // On Sauvegarde le panier dans le LocalStorage
+        localStorage.setItem("panier", JSON.stringify(panier))
+    }
+
+    
+}
+
+
+// ecoute l'evenement click, sur le button ajouter au panier et lance la fonction addToCart
+addToCartBtn.addEventListener("click", addToCart)
