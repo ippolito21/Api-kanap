@@ -137,11 +137,17 @@ function displayTotalPriceAndQuantity() {
 
 
 
+//passer la commande via le formulaire
 
 formHTML.addEventListener('submit', async (event) => {
+
   // On empeche le navigateur de soumettre le formulaire
   event.preventDefault()
 
+  const panierStorage = JSON.parse(localStorage.getItem('panier'))
+  if(panierStorage.length === 0){
+    return alert("Votre panier est vide")
+  }
   // Tableaux pour sauvegarder les ID des Kanap
   const products = []
   const cartItems = [...document.querySelectorAll('.cart__item')]
@@ -157,6 +163,59 @@ formHTML.addEventListener('submit', async (event) => {
   const cityHTML = document.querySelector("#city")
   const emailHTML = document.querySelector("#email")
   // Valider les inputs
+  // REGEX
+  const alphaNumericalRegex = /^[\w_-\s]*$/
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
+
+
+/// Test des valeurs des inputs avec les regex 
+  const regexResultFirstName = alphaNumericalRegex.test(firstNameHTML.value)
+  const regexResultLastName = alphaNumericalRegex.test(lastNameHTML.value)
+  const regexResultAddress = alphaNumericalRegex.test(addressHTML.value)
+  const regexResultCity = alphaNumericalRegex.test(cityHTML.value)
+  const regexResultEmail = emailRegex.test(emailHTML.value)
+
+
+// Si le champs est incorrect on affiche un message d'erreur
+  if (!regexResultFirstName) {
+    return document.querySelector('#firstNameErrorMsg').innerText = "Veuillez rentrer un prénom valide"
+  }
+  // sinon on affiche rien
+  else {
+    document.querySelector('#firstNameErrorMsg').innerText = ""
+
+  }
+
+  if (!regexResultLastName) {
+    return document.querySelector('#lastNameErrorMsg').innerText = "Veuillez rentrer un nom valide"
+  }
+  else {
+    document.querySelector('#lastNameErrorMsg').innerText = ""
+  }
+
+  if (!regexResultAddress) {
+    return document.querySelector('#addressErrorMsg').innerText = "Veuillez rentrer une addresse valide"
+  }
+  else {
+    document.querySelector('#addressErrorMsg').innerText = ""
+  }
+
+  if (!regexResultCity) {
+    return document.querySelector('#cityErrorMsg').innerText = "Veuillez rentrer une ville valide"
+  }
+  else {
+    document.querySelector('#cityErrorMsg').innerText = ""
+  }
+
+  if (!regexResultEmail) {
+    return document.querySelector('#emailErrorMsg').innerText = "Veuillez rentrer un email valide"
+  }
+  else {
+    document.querySelector('#emailErrorMsg').innerText = ""
+  }
+
+
+
 
   // L'objet Contact
   const contact = {
@@ -169,15 +228,28 @@ formHTML.addEventListener('submit', async (event) => {
   // Envoie des données à l'api
   try {
     const response = await fetch("http://localhost:3000/api/products/order", {
+      // Methede POST
       method: "POST",
+      // entete pour prevenir l'api de la nature du contenu
       headers: {
         "Content-Type": "application/json"
       },
+      // Le contenu sous format JSON
       body: JSON.stringify({ contact, products })
     })
+    // On recupere l'id unique de la commande
     const data = await response.json()
-    console.log(data)
+    // On enregistre l'id dans le localStorage
+    localStorage.setItem('commande', JSON.stringify(data))
+    // On vide le panier
+    localStorage.setItem("panier", JSON.stringify([]))
+    // Redirection vers la page de confirmation
+    window.location.href = "confirmation.html"
   } catch (error) {
+    // Si erreur on affiche l'erreur au niveau de la console
     console.log(error)
   }
 })
+
+
+

@@ -10,9 +10,9 @@ const quantityHTMLElement = document.querySelector("#quantity")
 const addToCartBtn = document.querySelector('#addToCart')
 
 
+//faire le lien entre un produit de la page d'acceuil et la page produit
 // un nouvel objet params 
 const params = new URLSearchParams(location.search)
-console.log(params)
 // Récupère ID  de l'url en cours
 const id = params.get("id")
 
@@ -20,10 +20,17 @@ const id = params.get("id")
 const url = `http://localhost:3000/api/products/${id}`
 
 async function getData(url) {
-    const response = await fetch(url)
-    const data = await response.json()
-    appendSingleData(data)
+    try {
+        const response = await fetch(url)
+        const data = await response.json()
+        appendSingleData(data)
+    } catch (error) {
+        console.error(error)
+    }
 }
+
+//Inserer un produit et ses détails dans la page produit
+
 // Ajoute les données relatives à un Kanap dans le HTML
 function appendSingleData(data) {
     // ajoute l'url de l'image à la balise img
@@ -39,7 +46,7 @@ function appendSingleData(data) {
 
     // Recupere chaque couleur dans le tableau colors
     data.colors.forEach(color => {
-        // Pour chaque coleur, génère un element html option tout en injectant la couleur comme valeur et comme contenu
+        // Pour chaque couleur, génère un element html option tout en injectant la couleur comme valeur et comme contenu
         colorsHTMLElement.innerHTML += `
         <option value="${color}">${color}</option>
         `
@@ -48,6 +55,7 @@ function appendSingleData(data) {
 }
 getData(url)
 
+//ajouter des produits dans le panier
 // fonction ajouter dans le panier
 function addToCart() {
     // ** Objet KANAP
@@ -63,6 +71,8 @@ function addToCart() {
             alt: image.alt
         }
     }
+
+    //afficher  un tableau  des achats dans la page panier
     // ** Tableau a mettre dans le localStorage
     const panier = []
     // Si panier existe dans le LocalStorage
@@ -81,11 +91,11 @@ function addToCart() {
 
         // Ajoute le premier Kanap
         panier.push(kanap)
-       // On Sauvegarde le panier dans le LocalStorage
+        // On Sauvegarde le panier dans le LocalStorage
         localStorage.setItem("panier", JSON.stringify(panier))
     }
 
-    
+    alert("Produit ajouté au panier")
 }
 
 
