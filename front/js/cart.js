@@ -1,5 +1,9 @@
+import products from "./prices.js"
+
 const cartItemHTML = document.querySelector('#cart__items')
 const formHTML = document.querySelector('.cart__order__form')
+
+
 
 async function displayCart() {
   // On execute le code seulement si le panier est defini au niveau du LocalStorage 
@@ -9,8 +13,9 @@ async function displayCart() {
     // Pour chaque Kanap dans le panier on genere le html ci-dessous tout en injectant le données
     // pour chaque kanap
     panier.forEach(kanap => {
+      const {price} = products.find(product => product._id === kanap.id)
       cartItemHTML.innerHTML += `
-            <article class="cart__item" data-id=${kanap.id} data-color=${kanap.color}>
+            <article class="cart__item" data-price=${price} data-id=${kanap.id} data-color=${kanap.color}>
             <div class="cart__item__img">
               <img src=${kanap.image.src} alt=${kanap.image.alt}>
             </div>
@@ -18,7 +23,7 @@ async function displayCart() {
               <div class="cart__item__content__description">
                 <h2>${kanap.name}</h2>
                 <p>${kanap.color}</p>
-                <p>${kanap.price}€</p>
+                <p>${price}€</p>
               </div>
               <div class="cart__item__content__settings">
                 <div class="cart__item__content__settings__quantity">
@@ -95,6 +100,10 @@ function updateKanap() {
       const kanapToUpdate = panierStorage.find(kanap => kanap.id === id)
       // On recupere les Autres Kanaps 
       const otherKanap = panierStorage.filter(kanap => kanap.id !== id)
+      if(quantity <= 0){
+        itemQuantity.value = kanapToUpdate.quantity
+        return alert("La quantité doit etre au minimum de 1 😁")
+      }
 
       // On met à jour la quantity pour le Kanap à modifier
       kanapToUpdate.quantity = quantity
@@ -113,6 +122,7 @@ function updateKanap() {
 }
 
 function displayTotalPriceAndQuantity() {
+  const cartItem =[ ...document.querySelectorAll(".cart__item")]
 
   const totalQuantityHTML = document.querySelector('#totalQuantity')
   const totalPriceHTML = document.querySelector('#totalPrice')
@@ -123,15 +133,23 @@ function displayTotalPriceAndQuantity() {
   totalPriceHTML.textContent = ""
 
   let totalQuantity = 0
+  let totalPricePerKanap = 0
   let totalPrice = 0
 
   panierStorage.forEach(kanap => {
     // On sauvegarde la quantité total ainsi que le prix total du panier
-    totalQuantity += kanap.quantity
-    totalPrice += kanap.totalPrice
+     totalQuantity += kanap.quantity
+     console.log(cartItem.dataset)
+     cartItem.forEach(item => {
+       totalPricePerKanap = +item.dataset.price * totalQuantity
+       totalPrice += totalPricePerKanap 
+       totalPricePerKanap = 0
+       console.log(totalPricePerKanap, totalPrice)
+     })
     // Affiche la quantité total ainsi que le prix total du panier 
-    totalQuantityHTML.innerText = totalQuantity
-    totalPriceHTML.innerText = totalPrice
+     totalQuantityHTML.innerText = totalQuantity
+     totalPriceHTML.innerText = totalPrice
+  
   })
 }
 
@@ -166,13 +184,14 @@ formHTML.addEventListener('submit', async (event) => {
   // REGEX
   const alphaNumericalRegex = /^[\w_-\s]*$/
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
+  const alphabeticalRegex = /^[a-zA-Z]+$/
 
 
 /// Test des valeurs des inputs avec les regex 
-  const regexResultFirstName = alphaNumericalRegex.test(firstNameHTML.value)
-  const regexResultLastName = alphaNumericalRegex.test(lastNameHTML.value)
+  const regexResultFirstName = alphabeticalRegex.test(firstNameHTML.value)
+  const regexResultLastName = alphabeticalRegex.test(lastNameHTML.value)
   const regexResultAddress = alphaNumericalRegex.test(addressHTML.value)
-  const regexResultCity = alphaNumericalRegex.test(cityHTML.value)
+  const regexResultCity = alphabeticalRegex.test(cityHTML.value)
   const regexResultEmail = emailRegex.test(emailHTML.value)
 
 
@@ -183,7 +202,6 @@ formHTML.addEventListener('submit', async (event) => {
   // sinon on affiche rien
   else {
     document.querySelector('#firstNameErrorMsg').innerText = ""
-
   }
 
   if (!regexResultLastName) {
@@ -240,11 +258,12 @@ formHTML.addEventListener('submit', async (event) => {
     // On recupere l'id unique de la commande
     const data = await response.json()
     // On enregistre l'id dans le localStorage
-    localStorage.setItem('commande', JSON.stringify(data))
+    // localStorage.setItem('commande', JSON.stringify(data))
     // On vide le panier
     localStorage.setItem("panier", JSON.stringify([]))
     // Redirection vers la page de confirmation
-    window.location.href = "confirmation.html"
+    //change M
+    window.location.href = "confirmation.html?id="+data.orderId
   } catch (error) {
     // Si erreur on affiche l'erreur au niveau de la console
     console.log(error)

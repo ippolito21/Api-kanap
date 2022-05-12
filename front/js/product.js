@@ -1,3 +1,4 @@
+
 // elements HTML
 
 const image = document.querySelector('.item__img img')
@@ -8,7 +9,7 @@ const colorsHTMLElement = document.querySelector('#colors')
 const quantityHTMLElement = document.querySelector("#quantity")
 
 const addToCartBtn = document.querySelector('#addToCart')
-
+const kanapsPrice = []
 
 //faire le lien entre un produit de la page d'acceuil et la page produit
 // un nouvel objet params 
@@ -58,20 +59,26 @@ getData(url)
 //ajouter des produits dans le panier
 // fonction ajouter dans le panier
 function addToCart() {
+    if(+quantityHTMLElement.value <= 0){
+        return alert("La quantité doit etre au minimum de 1 😁")
+    }
+    if(!colorsHTMLElement.value){
+        return alert("Veuillez choisir une couleur 😁")
+    }
     // ** Objet KANAP
     const kanap = {
         quantity: +quantityHTMLElement.value,
         color: colorsHTMLElement.value,
         name: title.textContent,
         id: id,
-        price: +price.textContent,
-        totalPrice: parseInt(quantityHTMLElement.value * price.textContent),
         image: {
             src: image.src,
             alt: image.alt
         }
     }
-
+    
+    kanapsPrice.push(kanap)
+    
     //afficher  un tableau  des achats dans la page panier
     // ** Tableau a mettre dans le localStorage
     const panier = []
@@ -101,3 +108,4 @@ function addToCart() {
 
 // ecoute l'evenement click, sur le button ajouter au panier et lance la fonction addToCart
 addToCartBtn.addEventListener("click", addToCart)
+

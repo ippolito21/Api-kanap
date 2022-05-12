@@ -1,3 +1,4 @@
+
 //Inserer les produits dans la page d'acceuil
 
 //Créer, exécuter une requete http avec la fonction fetch
@@ -13,6 +14,7 @@ async function getData(url) {
     const response = await fetch(url)
     // Parse JSON
     const data = await response.json()
+    console.log(data)
     // On passe le JSON a la fonction appendData
     appendData(data)
   }
@@ -38,7 +40,6 @@ async function getData(url) {
         `
     })
   }
-
 
 
 
