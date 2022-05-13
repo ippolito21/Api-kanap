@@ -1,11 +1,28 @@
-import products from "./prices.js"
 
 const cartItemHTML = document.querySelector('#cart__items')
 const formHTML = document.querySelector('.cart__order__form')
+const url = "http://localhost:3000/api/products"
+async function getData(url){
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    return data
+  } catch (error) {
+      console.error(error)
+  }
+}
 
+getData(url).then(products => {
+  displayCart(products)
+  .then(() => {
+    deleteKanap()
+    updateKanap()
+    displayTotalPriceAndQuantity()
+  })
+})
 
-
-async function displayCart() {
+async function displayCart(products) {
+  console.log(products)
   // On execute le code seulement si le panier est defini au niveau du LocalStorage 
   if (localStorage.getItem('panier')) {
     // On recupere le panier depuis le LocalStorage et on le parse pour recuperer un tableau
@@ -42,12 +59,7 @@ async function displayCart() {
   displayTotalPriceAndQuantity()
 }
 
-displayCart()
-  .then(() => {
-    deleteKanap()
-    updateKanap()
-    displayTotalPriceAndQuantity()
-  })
+
 
 function deleteKanap() {
 
@@ -68,7 +80,6 @@ function deleteKanap() {
       event.target.closest(".cart__item").remove()
       // On filtre pour extraire tout les Kanap sauf le Kanap courrant (Celui qu'on essaie de supprimer)
       const filterdPanier = panierStorage.filter(item => item.id !== id)
-      console.log(filterdPanier)
       // on ajoute les Kanap contenu dans la variable filterdPanier
       panier.push(filterdPanier)
       // On Sauvegarde le panier dans le LocalStorage
@@ -136,21 +147,20 @@ function displayTotalPriceAndQuantity() {
   let totalPricePerKanap = 0
   let totalPrice = 0
 
-  panierStorage.forEach(kanap => {
+  const kanapQuantity = panierStorage.map(kanap => {
     // On sauvegarde la quantité total ainsi que le prix total du panier
-     totalQuantity += kanap.quantity
-     console.log(cartItem.dataset)
-     cartItem.forEach(item => {
-       totalPricePerKanap = +item.dataset.price * totalQuantity
+      totalQuantity += kanap.quantity 
+      return  kanap.quantity
+  })
+
+     cartItem.forEach((item, index) => {
+       totalPricePerKanap = +item.dataset.price * kanapQuantity[index]
        totalPrice += totalPricePerKanap 
        totalPricePerKanap = 0
-       console.log(totalPricePerKanap, totalPrice)
      })
     // Affiche la quantité total ainsi que le prix total du panier 
      totalQuantityHTML.innerText = totalQuantity
      totalPriceHTML.innerText = totalPrice
-  
-  })
 }
 
 
@@ -184,14 +194,15 @@ formHTML.addEventListener('submit', async (event) => {
   // REGEX
   const alphaNumericalRegex = /^[\w_-\s]*$/
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
-  const alphabeticalRegex = /^[a-zA-Z]+$/
+  const alphabeticalRegex = /^[a-zA-Z ]+$/
+  const cityRegex = /^[a-zA-Z -]+$/
 
 
 /// Test des valeurs des inputs avec les regex 
   const regexResultFirstName = alphabeticalRegex.test(firstNameHTML.value)
   const regexResultLastName = alphabeticalRegex.test(lastNameHTML.value)
   const regexResultAddress = alphaNumericalRegex.test(addressHTML.value)
-  const regexResultCity = alphabeticalRegex.test(cityHTML.value)
+  const regexResultCity = cityRegex.test(cityHTML.value)
   const regexResultEmail = emailRegex.test(emailHTML.value)
 
 
@@ -257,12 +268,10 @@ formHTML.addEventListener('submit', async (event) => {
     })
     // On recupere l'id unique de la commande
     const data = await response.json()
-    // On enregistre l'id dans le localStorage
-    // localStorage.setItem('commande', JSON.stringify(data))
+    
     // On vide le panier
     localStorage.setItem("panier", JSON.stringify([]))
     // Redirection vers la page de confirmation
-    //change M
     window.location.href = "confirmation.html?id="+data.orderId
   } catch (error) {
     // Si erreur on affiche l'erreur au niveau de la console

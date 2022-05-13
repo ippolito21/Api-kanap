@@ -1,8 +1,7 @@
 function confirmationData() {
-    // on recupere la commande contenant notamment le numero de commande  
-    // const commandeStorage = JSON.parse(localStorage.getItem('commande'))
+      
+    
     // on recupere l'element HTML orderId
-    //change m ajoute Id
     const orderIdHTML = document.querySelector("#orderId");
     // On ajoute l'ID de la commande dans le HTML
     const params = new URLSearchParams(location.search)
